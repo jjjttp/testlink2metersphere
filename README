@@ -1,0 +1,8 @@
+使用方法：
+1、从testlink导出xml格式用例
+2、执行python testlink2metersphere.py 你的xml文件
+3、在同一目录下会生成后缀为xls的用例文件，导入metersphere即可
+
+PS：脚本在python 3.8.3测试通过，需要安装依赖库
+xlwt
+xml
