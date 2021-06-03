@@ -180,7 +180,8 @@ class GetXmlTestcaseList(object):
 #         workbook = xlwt.Workbook()  # 注意Workbook的开头W要大写
 #         sheet1 = workbook.add_sheet('sheet1', cell_overwrite_ok=True)
 #         return sheet1
-
+def replace_L(match):
+    return match.group(0).replace(match.group(0), "{}、".format(match.group(1)))
 if __name__ == '__main__':
     xml_file_path = "testlink.xml"
     xls_file_path = ""
@@ -194,24 +195,41 @@ if __name__ == '__main__':
     # 创建workbook和sheet对象
     workbook = xlwt.Workbook()  # 注意Workbook的开头W要大写
     sheet1 = workbook.add_sheet('sheet1', cell_overwrite_ok=True)
+    #Add sheet header:
+    sheet1.write(0, 0,"用例名称")
+    sheet1.write(0, 1, "所属模块")
+    sheet1.write(0, 2, "维护人")
+    sheet1.write(0, 3, "用例等级")
+    sheet1.write(0, 4, "标签")
+    sheet1.write(0, 5, "前置条件")
+    sheet1.write(0, 6, "备注")
+    sheet1.write(0, 7, "步骤描述")
+    sheet1.write(0, 8, "预期结果")
+    sheet1.write(0, 9, "编辑模式")
+
     for row,tc_item in enumerate(tc_list,1):
-        sheet1.write(row, 2, tc_item.testcasename)
-        sheet1.write(row, 3, tc_item.testsuitename)
-        sheet1.write(row, 4, "functional")
-        sheet1.write(row, 5, "admin")
-        sheet1.write(row, 6, "P1")
-        sheet1.write(row, 8, tc_item.testcaseprecon)
-        sheet1.write(row, 9, tc_item.testcasesummary)
+        sheet1.write(row, 0, tc_item.testcasename)
+        sheet1.write(row, 1, tc_item.testsuitename)
+        sheet1.write(row, 4, "testlink_import")
+        sheet1.write(row, 2, "admin")
+        sheet1.write(row, 3, "P1")
+        sheet1.write(row, 5, tc_item.testcaseprecon)
+        sheet1.write(row, 6, tc_item.testcasesummary)
         teststep2write=[]
         teststepexpect2write=[]
         for tstep in ts_list:
             if tstep.testcasenob == tc_item.testcasenob:
                 for index,step in enumerate(tstep.teststepcon,1):
+                    #将步骤中带有1.等序号替换成1、以免引起误识别：
+                    step = re.sub("^([0-9]+)\.", replace_L, step, flags=re.MULTILINE)
                     teststep2write.append("{}. {}".format(index,step))
                 for index,stepexpect in enumerate(tstep.teststepexpect,1):
+                    stepexpect = stepexpect if stepexpect else '\n'
+                    # 将步骤中带有1.等序号替换成1、以免引起误识别：
+                    stepexpect = re.sub("^([0-9]+)\.", replace_L, stepexpect, flags=re.MULTILINE)
                     teststepexpect2write.append("{}. {}".format(index, stepexpect))
-                sheet1.write(row, 10, teststep2write)
-                sheet1.write(row, 11, teststepexpect2write)
+                sheet1.write(row, 7, teststep2write)
+                sheet1.write(row, 8, teststepexpect2write)
     workbook.save(xls_file_path)
     print("转换用例数量：{}".format(len(tc_list)))
 
